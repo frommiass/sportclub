@@ -97,15 +97,6 @@ fun PlayersListScreen(navController: NavController? = null) {
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Заголовок страницы
-            Text(
-                text = "Список участников",
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-            )
 
             // Список игроков
             LazyColumn(

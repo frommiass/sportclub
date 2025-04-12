@@ -38,21 +38,28 @@ android {
 }
 
 dependencies {
-    // Зависимости от других модулей
+    // Expose Compose dependencies to other modules with api
+    api(platform("androidx.compose:compose-bom:2023.08.00"))
+    api("androidx.compose.ui:ui")
+    api("androidx.compose.ui:ui-graphics")
+    api("androidx.compose.ui:ui-tooling-preview")
+    api("androidx.compose.material3:material3")
+    api("androidx.compose.material:material-icons-core")
+    api("androidx.compose.material:material-icons-extended")
+
+    // Navigation - добавляем как api чтобы было доступно другим модулям
+    api("androidx.navigation:navigation-compose:2.7.6")
+
+    // Core Android зависимости
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.activity:activity-compose:1.8.2")
+
+    // Зависимость от core модуля для доступа к NavRoutes
     implementation(project(":core"))
-    implementation(project(":domain"))
-    implementation(project(":ui-common"))
-
-    // Compose зависимости уже доступны из ui-common
-
-    // Navigation
-    implementation("androidx.navigation:navigation-compose:2.7.6")
-
-    // Koin
-    implementation("io.insert-koin:koin-android:3.5.0")
-    implementation("io.insert-koin:koin-androidx-compose:3.5.0")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 }
