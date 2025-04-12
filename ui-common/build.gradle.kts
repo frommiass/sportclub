@@ -45,10 +45,16 @@ dependencies {
     api("androidx.compose.ui:ui-tooling-preview")
     api("androidx.compose.material3:material3")
 
+    // Navigation - добавляем как api чтобы было доступно другим модулям
+    api("androidx.navigation:navigation-compose:2.7.6")
+
     // Core Android зависимости
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
+
+    // Зависимость от core модуля для доступа к NavRoutes
+    implementation(project(":core"))
 
     // Testing
     testImplementation("junit:junit:4.13.2")
