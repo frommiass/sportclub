@@ -44,6 +44,8 @@ dependencies {
     api("androidx.compose.ui:ui-graphics")
     api("androidx.compose.ui:ui-tooling-preview")
     api("androidx.compose.material3:material3")
+    api("androidx.compose.material:material-icons-core")
+    api("androidx.compose.material:material-icons-extended")
 
     // Navigation - добавляем как api чтобы было доступно другим модулям
     api("androidx.navigation:navigation-compose:2.7.6")

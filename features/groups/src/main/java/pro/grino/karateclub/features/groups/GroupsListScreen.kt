@@ -2,6 +2,7 @@ package pro.grino.karateclub.features.groups
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,19 +19,25 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,29 +46,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-
-// Данные для демонстрации
-data class Group(
-    val id: Int,
-    val name: String,
-    val coach: String,
-    val level: String,
-    val membersCount: Int,
-    val schedule: String
-)
+import org.koin.androidx.compose.koinViewModel
+import pro.grino.karateclub.domain.model.Group
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupsListScreen(navController: NavController? = null) {
-    // Демо-данные групп
-    val groups = remember {
-        listOf(
-            Group(1, "Взрослые", "Иванов И.И.", "Продвинутый", 12, "Пн, Ср, Пт 19:00-21:00"),
-            Group(2, "Юниоры", "Петров П.П.", "Средний", 18, "Вт, Чт 17:00-19:00, Сб 10:00-12:00"),
-            Group(3, "Дети 8-12", "Сидорова О.В.", "Начальный", 15, "Пн, Ср, Пт 16:00-17:30"),
-            Group(4, "Старшие мастера", "Кузнецов А.А.", "Мастера", 8, "Сб, Вс 12:00-14:00")
-        )
-    }
+fun GroupsListScreen(
+    navController: NavController? = null,
+    viewModel: GroupsViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsState()
 
     Scaffold(
         topBar = {
@@ -70,7 +64,16 @@ fun GroupsListScreen(navController: NavController? = null) {
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = { viewModel.loadGroups() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Обновить",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {
@@ -86,24 +89,125 @@ fun GroupsListScreen(navController: NavController? = null) {
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Список групп
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                items(groups) { group ->
-                    GroupItem(group = group, onGroupClick = {
-                        // Здесь будет навигация к деталям группы
-                    })
-                    Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+            when (state) {
+                is GroupsState.Loading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .align(Alignment.Center)
+                    )
+                }
+
+                is GroupsState.Success -> {
+                    val groups = (state as GroupsState.Success).groups
+                    GroupsContent(groups = groups)
+                }
+
+                is GroupsState.Empty -> {
+                    EmptyGroupsContent()
+                }
+
+                is GroupsState.Error -> {
+                    val message = (state as GroupsState.Error).message
+                    ErrorContent(message = message, onRetry = { viewModel.loadGroups() })
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun GroupsContent(groups: List<Group>) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Заголовок страницы
+        Text(
+            text = "Список групп",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
+        )
+
+        // Список групп
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            items(groups) { group ->
+                GroupItem(group = group, onGroupClick = {
+                    // Здесь будет навигация к деталям группы
+                })
+                Divider(color = MaterialTheme.colorScheme.surfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyGroupsContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Нет данных о группах",
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Добавьте первую группу, нажав на кнопку '+' внизу экрана",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun ErrorContent(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Ошибка загрузки данных",
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.error
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text("Повторить")
         }
     }
 }
@@ -166,7 +270,7 @@ fun GroupItem(
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = "Участники: ${group.membersCount}",
+                    text = "Участники: ${group.currentMembersCount}/${group.maxCapacity}",
                     style = MaterialTheme.typography.bodyMedium
                 )
 
