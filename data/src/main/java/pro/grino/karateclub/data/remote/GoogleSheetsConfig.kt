@@ -7,11 +7,11 @@ object GoogleSheetsConfig {
     // API ключ для публичного доступа к Google Sheets
     // Для тестирования можно использовать пустой ключ, это позволит приложению запускаться
     // в режиме тестирования без реальных API-запросов
-    const val API_KEY = ""
+    const val API_KEY = "AIzaSyBYI2vhghRYVV8Zzg5HUTkFZaBCA2KhfHg"
 
     // ID Google таблицы
     // Здесь должен быть реальный ID вашей Google таблицы
-    const val SHEET_ID = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" // Пример ID (публичной таблицы Google для тестирования)
+    const val SHEET_ID = "1nRwB4FxCgm8IcGrbW5CzVqCBs_6MZqwkdi16bo4vBGA"
 
     // Имена листов в таблице
     const val PLAYERS_SHEET = "Players"
