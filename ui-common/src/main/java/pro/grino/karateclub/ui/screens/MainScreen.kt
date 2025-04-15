@@ -26,8 +26,10 @@ import pro.grino.karateclub.ui.components.BottomNavigationBar
 @Composable
 fun MainScreen(
     navController: NavHostController = rememberNavController(),
-    playersContent: @Composable () -> Unit,
-    groupsContent: @Composable () -> Unit
+    playersListContent: @Composable (NavController: NavHostController) -> Unit,
+    playersAddContent: @Composable (NavController: NavHostController) -> Unit,
+    groupsListContent: @Composable (NavController: NavHostController) -> Unit,
+    groupsAddContent: @Composable (NavController: NavHostController) -> Unit
 ) {
     val navItems = listOf(
         BottomNavItem(
@@ -45,24 +47,33 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: NavRoutes.PLAYERS_LIST
 
+    // Определяем, нужно ли показывать нижнюю навигацию
+    val showBottomBar = when {
+        currentRoute == NavRoutes.PLAYERS_LIST -> true
+        currentRoute == NavRoutes.GROUPS_LIST -> true
+        else -> false
+    }
+
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(
-                items = navItems,
-                currentRoute = currentRoute,
-                onItemSelected = { route ->
-                    navController.navigate(route) {
-                        // Избегаем создания множества копий экранов при навигации
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+            if (showBottomBar) {
+                BottomNavigationBar(
+                    items = navItems,
+                    currentRoute = currentRoute,
+                    onItemSelected = { route ->
+                        navController.navigate(route) {
+                            // Избегаем создания множества копий экранов при навигации
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            // Избегаем множества копий одного экрана в стеке
+                            launchSingleTop = true
+                            // Восстанавливаем состояние при возврате
+                            restoreState = true
                         }
-                        // Избегаем множества копий одного экрана в стеке
-                        launchSingleTop = true
-                        // Восстанавливаем состояние при возврате
-                        restoreState = true
                     }
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
         NavHost(
@@ -73,10 +84,16 @@ fun MainScreen(
                 .padding(innerPadding)
         ) {
             composable(NavRoutes.PLAYERS_LIST) {
-                playersContent()
+                playersListContent(navController)
+            }
+            composable(NavRoutes.PLAYER_ADD) {
+                playersAddContent(navController)
             }
             composable(NavRoutes.GROUPS_LIST) {
-                groupsContent()
+                groupsListContent(navController)
+            }
+            composable(NavRoutes.GROUP_ADD) {
+                groupsAddContent(navController)
             }
         }
     }

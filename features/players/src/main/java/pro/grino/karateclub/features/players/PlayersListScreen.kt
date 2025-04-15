@@ -46,12 +46,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
+import pro.grino.karateclub.core.navigation.NavRoutes
 import pro.grino.karateclub.domain.model.Player
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayersListScreen(
-    navController: NavController? = null,
+    navController: NavController,
     viewModel: PlayersViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -77,7 +78,9 @@ fun PlayersListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* Добавление нового игрока */ },
+                onClick = {
+                    navController.navigate(NavRoutes.PLAYER_ADD)
+                },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(
@@ -104,7 +107,9 @@ fun PlayersListScreen(
 
                 is PlayersState.Success -> {
                     val players = (state as PlayersState.Success).players
-                    PlayersContent(players = players)
+                    PlayersContent(players = players, onPlayerClick = { playerId ->
+                        // Навигация к деталям игрока (в будущей версии)
+                    })
                 }
 
                 is PlayersState.Empty -> {
@@ -121,30 +126,15 @@ fun PlayersListScreen(
 }
 
 @Composable
-fun PlayersContent(players: List<Player>) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Заголовок страницы
-        Text(
-            text = "Список участников",
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        )
-
-        // Список игроков
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        ) {
-            items(players) { player ->
-                PlayerItem(player = player, onPlayerClick = {
-                    // Здесь будет навигация к деталям игрока
-                })
-                Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-            }
+fun PlayersContent(players: List<Player>, onPlayerClick: (String) -> Unit) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        items(players) { player ->
+            PlayerItem(player = player, onPlayerClick = { onPlayerClick(player.id) })
+            Divider(color = MaterialTheme.colorScheme.surfaceVariant)
         }
     }
 }

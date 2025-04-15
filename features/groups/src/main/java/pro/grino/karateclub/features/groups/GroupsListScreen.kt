@@ -47,12 +47,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.koin.androidx.compose.koinViewModel
+import pro.grino.karateclub.core.navigation.NavRoutes
 import pro.grino.karateclub.domain.model.Group
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupsListScreen(
-    navController: NavController? = null,
+    navController: NavController,
     viewModel: GroupsViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -78,7 +79,9 @@ fun GroupsListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* Добавление новой группы */ },
+                onClick = {
+                    navController.navigate(NavRoutes.GROUP_ADD)
+                },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(
@@ -105,7 +108,9 @@ fun GroupsListScreen(
 
                 is GroupsState.Success -> {
                     val groups = (state as GroupsState.Success).groups
-                    GroupsContent(groups = groups)
+                    GroupsContent(groups = groups, onGroupClick = { groupId ->
+                        // Навигация к деталям группы (в будущей версии)
+                    })
                 }
 
                 is GroupsState.Empty -> {
@@ -122,30 +127,15 @@ fun GroupsListScreen(
 }
 
 @Composable
-fun GroupsContent(groups: List<Group>) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Заголовок страницы
-        Text(
-            text = "Список групп",
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        )
-
-        // Список групп
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        ) {
-            items(groups) { group ->
-                GroupItem(group = group, onGroupClick = {
-                    // Здесь будет навигация к деталям группы
-                })
-                Divider(color = MaterialTheme.colorScheme.surfaceVariant)
-            }
+fun GroupsContent(groups: List<Group>, onGroupClick: (String) -> Unit) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        items(groups) { group ->
+            GroupItem(group = group, onGroupClick = { onGroupClick(group.id) })
+            Divider(color = MaterialTheme.colorScheme.surfaceVariant)
         }
     }
 }
