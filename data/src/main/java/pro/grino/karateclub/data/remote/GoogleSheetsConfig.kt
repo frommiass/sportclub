@@ -1,9 +1,12 @@
 package pro.grino.karateclub.data.remote
 
+import android.util.Log
+
 /**
  * Константы для работы с Google Sheets API
  */
 object GoogleSheetsConfig {
+
     // API ключ для публичного доступа к Google Sheets
     // Для тестирования можно использовать пустой ключ, это позволит приложению запускаться
     // в режиме тестирования без реальных API-запросов
@@ -23,4 +26,12 @@ object GoogleSheetsConfig {
     // Диапазон данных (включая заголовки)
     const val PLAYERS_RANGE = "$PLAYERS_SHEET!A1:H"
     const val GROUPS_RANGE = "$GROUPS_SHEET!A1:G"
+
+    init {
+        Log.d("GoogleSheetsConfig", "Инициализация GoogleSheetsConfig")
+        Log.d("GoogleSheetsConfig", "API_KEY: $API_KEY")
+        Log.d("GoogleSheetsConfig", "SHEET_ID: $SHEET_ID")
+        Log.d("GoogleSheetsConfig", "PLAYERS_RANGE: $PLAYERS_RANGE")
+        Log.d("GoogleSheetsConfig", "GROUPS_RANGE: $GROUPS_RANGE")
+    }
 }

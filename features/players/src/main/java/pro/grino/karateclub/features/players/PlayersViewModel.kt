@@ -1,5 +1,6 @@
 package pro.grino.karateclub.features.players
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,13 +23,16 @@ class PlayersViewModel(
 
     fun loadPlayers() {
         viewModelScope.launch {
+            Log.d("PlayersViewModel", "Загрузка списка участников")
             _state.value = PlayersState.Loading
 
             getAllPlayersUseCase()
                 .catch { e ->
+                    Log.e("PlayersViewModel", "Ошибка при загрузке участников", e)
                     _state.value = PlayersState.Error(e.message ?: "Ошибка загрузки данных")
                 }
                 .collect { players ->
+                    Log.d("PlayersViewModel", "Получено ${players.size} участников")
                     _state.value = if (players.isEmpty()) {
                         PlayersState.Empty
                     } else {

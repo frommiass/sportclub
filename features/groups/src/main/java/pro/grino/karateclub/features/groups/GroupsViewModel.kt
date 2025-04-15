@@ -1,5 +1,6 @@
 package pro.grino.karateclub.features.groups
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,13 +23,16 @@ class GroupsViewModel(
 
     fun loadGroups() {
         viewModelScope.launch {
+            Log.d("GroupsViewModel", "Загрузка списка групп")
             _state.value = GroupsState.Loading
 
             getAllGroupsUseCase()
                 .catch { e ->
+                    Log.e("GroupsViewModel", "Ошибка при загрузке групп", e)
                     _state.value = GroupsState.Error(e.message ?: "Ошибка загрузки данных")
                 }
                 .collect { groups ->
+                    Log.d("GroupsViewModel", "Получено ${groups.size} групп")
                     _state.value = if (groups.isEmpty()) {
                         GroupsState.Empty
                     } else {

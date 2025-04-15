@@ -1,5 +1,6 @@
 package pro.grino.karateclub.data.di
 
+import android.util.Log
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -15,7 +16,11 @@ import java.util.concurrent.TimeUnit
 object NetworkModule {
 
     fun provideOkHttpClient(): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
+        Log.d("NetworkModule", "Создание OkHttpClient")
+
+        val loggingInterceptor = HttpLoggingInterceptor { message ->
+            Log.d("OkHttp", message)
+        }.apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
 
@@ -28,13 +33,21 @@ object NetworkModule {
     }
 
     fun provideGoogleSheetsService(okHttpClient: OkHttpClient): GoogleSheetsService {
-        val gson = GsonBuilder().create()
+        Log.d("NetworkModule", "Создание GoogleSheetsService")
+        Log.d("NetworkModule", "BASE_URL: ${GoogleSheetsConfig.BASE_URL}")
 
-        return Retrofit.Builder()
+        val gson = GsonBuilder()
+            .setLenient() // Добавляем для более гибкого парсинга JSON
+            .create()
+
+        val retrofit = Retrofit.Builder()
             .baseUrl(GoogleSheetsConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
-            .create(GoogleSheetsService::class.java)
+
+        Log.d("NetworkModule", "Retrofit настроен, создаем сервис")
+
+        return retrofit.create(GoogleSheetsService::class.java)
     }
 }

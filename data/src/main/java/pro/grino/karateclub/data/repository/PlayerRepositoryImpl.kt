@@ -1,5 +1,6 @@
 package pro.grino.karateclub.data.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import pro.grino.karateclub.data.remote.GoogleSheetsConfig
@@ -7,6 +8,7 @@ import pro.grino.karateclub.data.remote.GoogleSheetsService
 import pro.grino.karateclub.data.remote.ValueRange
 import pro.grino.karateclub.domain.model.Player
 import pro.grino.karateclub.domain.repository.PlayerRepository
+import retrofit2.Response
 
 class PlayerRepositoryImpl(
     private val sheetsService: GoogleSheetsService
@@ -42,9 +44,11 @@ class PlayerRepositoryImpl(
 
                 emit(players)
             } else {
+                Log.e("PlayerRepository", "Ошибка получения данных: ${response.errorBody()?.string()}")
                 emit(emptyList())
             }
         } catch (e: Exception) {
+            Log.e("PlayerRepository", "Исключение при получении данных", e)
             emit(emptyList())
         }
     }
@@ -82,28 +86,51 @@ class PlayerRepositoryImpl(
     }
 
     override suspend fun addPlayer(player: Player) {
-        val playerData = listOf(
-            player.id,
-            player.name,
-            player.age.toString(),
-            player.belt,
-            player.group,
-            player.phone,
-            player.email,
-            player.joinDate
-        )
+        try {
+            Log.d("PlayerRepository", "Подготовка данных для добавления участника: ${player.name}")
 
-        val valueRange = ValueRange(
-            range = GoogleSheetsConfig.PLAYERS_RANGE,
-            values = listOf(playerData)
-        )
+            // Формируем данные игрока
+            val playerData = listOf(
+                player.id,
+                player.name,
+                player.age.toString(),
+                player.belt,
+                player.group,
+                player.phone,
+                player.email,
+                player.joinDate
+            )
 
-        sheetsService.appendValues(
-            spreadsheetId = GoogleSheetsConfig.SHEET_ID,
-            range = GoogleSheetsConfig.PLAYERS_RANGE,
-            apiKey = GoogleSheetsConfig.API_KEY,
-            valueRange = valueRange
-        )
+            // Создаем значения для вставки
+            val valueRange = ValueRange(
+                range = GoogleSheetsConfig.PLAYERS_RANGE,
+                values = listOf(playerData)
+            )
+
+            Log.d("PlayerRepository", "Отправка запроса в Google Sheets")
+            Log.d("PlayerRepository", "Spreadsheet ID: ${GoogleSheetsConfig.SHEET_ID}")
+            Log.d("PlayerRepository", "Range: ${GoogleSheetsConfig.PLAYERS_RANGE}")
+            Log.d("PlayerRepository", "API Key: ${GoogleSheetsConfig.API_KEY}")
+
+            // Выполняем запрос
+            val response = sheetsService.appendValues(
+                spreadsheetId = GoogleSheetsConfig.SHEET_ID,
+                range = GoogleSheetsConfig.PLAYERS_RANGE,
+                apiKey = GoogleSheetsConfig.API_KEY,
+                valueRange = valueRange
+            )
+
+            // Проверка результата
+            if (response.isSuccessful) {
+                Log.d("PlayerRepository", "Участник успешно добавлен: ${response.body()}")
+            } else {
+                Log.e("PlayerRepository", "Ошибка при добавлении участника: ${response.errorBody()?.string()}")
+                throw Exception("Не удалось добавить участника. Ошибка: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            Log.e("PlayerRepository", "Исключение при добавлении участника", e)
+            throw e
+        }
     }
 
     override suspend fun updatePlayer(player: Player) {

@@ -1,5 +1,6 @@
 package pro.grino.karateclub.features.players
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,7 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.koin.androidx.compose.get
 import pro.grino.karateclub.domain.model.Player
+import pro.grino.karateclub.domain.usecase.GetAllPlayersUseCase
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,7 +27,8 @@ import java.util.*
 @Composable
 fun AddPlayerScreen(
     navController: NavController,
-    viewModel: AddPlayerViewModel = koinViewModel()
+    viewModel: AddPlayerViewModel = koinViewModel(),
+    playersViewModel: PlayersViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -39,6 +43,9 @@ fun AddPlayerScreen(
     // Наблюдение за состоянием для перехода назад после успешного сохранения
     LaunchedEffect(state) {
         if (state is AddPlayerState.Success) {
+            Log.d("AddPlayerScreen", "Участник успешно добавлен, обновляем список")
+            // Важно: обновляем список участников перед возвратом
+            playersViewModel.loadPlayers()
             navController.popBackStack()
         }
     }
@@ -66,6 +73,8 @@ fun AddPlayerScreen(
                     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                     val currentDate = dateFormat.format(Date())
 
+                    Log.d("AddPlayerScreen", "Создаем нового участника: $name")
+
                     // Создаем нового участника и сохраняем
                     val newPlayer = Player(
                         id = UUID.randomUUID().toString(),
@@ -77,7 +86,9 @@ fun AddPlayerScreen(
                         email = email,
                         joinDate = currentDate
                     )
+
                     coroutineScope.launch {
+                        Log.d("AddPlayerScreen", "Вызываем метод addPlayer для ${newPlayer.name}")
                         viewModel.addPlayer(newPlayer)
                     }
                 },

@@ -1,5 +1,6 @@
 package pro.grino.karateclub.features.players
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,10 +19,16 @@ class AddPlayerViewModel(
     suspend fun addPlayer(player: Player) {
         viewModelScope.launch {
             try {
+                Log.d("AddPlayerViewModel", "Начинаем добавление участника: ${player.name}")
                 _state.value = AddPlayerState.Loading
+
+                Log.d("AddPlayerViewModel", "Вызываем addPlayerUseCase")
                 addPlayerUseCase(player)
+
+                Log.d("AddPlayerViewModel", "Участник успешно добавлен")
                 _state.value = AddPlayerState.Success
             } catch (e: Exception) {
+                Log.e("AddPlayerViewModel", "Ошибка при добавлении участника", e)
                 _state.value = AddPlayerState.Error(e.message ?: "Не удалось сохранить участника")
             }
         }
